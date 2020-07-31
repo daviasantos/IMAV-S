@@ -1,6 +1,6 @@
 
 
-# <img src="FIGURES\LogoIMAVS.png" style="zoom:20%;" />
+# <img src="FIGURES\LogoIMAVS.png" style="zoom:10%;" />
 
 IMAV-S is a software-in-the-loop (SIL) flight dynamics & control simulator of multirotor aerial vehicles developed for R&D in LRA (*Laboratório de Robótica Aérea*) at *Instituto Tecnológico de Aeronáutica* (Brazil). The MAV physics, the actuators and sensors, and the control algorithms are coded in MATLAB script, with communicates via TPC socket with a Unity 3D game representing a virtual indoor flight arena. The simulator runs in (pseudo) real time, thus allowing a realistic piloting experience.
 
