@@ -1,5 +1,3 @@
-# <img src="FIGURES\LogoIMAVS.png" style="zoom:30%;" />
-
 
 
 # <img src="FIGURES\LogoIMAVS.png" style="zoom:30%;" />
