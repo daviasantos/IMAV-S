@@ -1,6 +1,6 @@
 
 
-# <img src="FIGURES\LogoIMAVS.png" style="zoom:30%;" />
+# <img src="FIGURES\LogoIMAVS.png" style="zoom:20%;" />
 
 IMAV-S is a software-in-the-loop (SIL) flight dynamics & control simulator of multirotor aerial vehicles developed for R&D in LRA (*Laboratório de Robótica Aérea*) at *Instituto Tecnológico de Aeronáutica* (Brazil). The MAV physics, the actuators and sensors, and the control algorithms are coded in MATLAB script, with communicates via TPC socket with a Unity 3D game representing a virtual indoor flight arena. The simulator runs in (pseudo) real time, thus allowing a realistic piloting experience.
 
@@ -17,7 +17,7 @@ For obtaining background material about MAV dynamics, control, guidance, and nav
 
 First of all, fork this repository into your GitHub profile and then download or clone it on your computer. 
 
-To run the simulator, you need to download the zipped file containing the virtual indoor arena. You can find it in [this page](http://www.professordavisantos.com/imav-s/). After that, you need to extract this file on your computer. Then you will obtain a folder contains the executable file `IMAVArena.exe`. This virtual arena has been developed in Unity 3D by Mr. Nicolas Granese.
+To run the simulator, you need to download the zipped file containing the virtual indoor arena. You can find it in [this page](http://www.professordavisantos.com/imav-s/). After that, you need to extract this file on your computer. Then you will obtain a folder contains the executable file `IMAVArena.exe`. This virtual arena has been developed in Unity 3D by Mr. Nicolas Granese, who is a great guy!
 
 This repo has one main folder named `MATLAB`, where you can find all the simulator source files.  
 It contains two sub-folders: `Classes` and `Conversions`. The sub-folder `Classes` in turn contains one class for each functionality of the simulator (*e.g.*, `CControl` is a class which implements the flight control laws). On the other hand, the sub-folder `Conversion` contains basic math functions for coordinate conversions, signal saturation, and construction of a skew-symmetric matrix. 
