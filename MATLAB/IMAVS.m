@@ -1,4 +1,3 @@
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %    IMAV-S - Flight dynamics and control simulator for MAVs 
 %    Copyright (C) 2020  Aeronautics Institute of Technology
@@ -61,8 +60,7 @@ tstart = tic;
 
 % Input parameters
 
-load('Parameters.mat');
-
+Parameters;
 
 % TCP socket with unity computer 
 
@@ -108,10 +106,10 @@ oMav = CMav( sMav );
 
 sUncer.alpha_f = alpha_f;
 sUncer.alpha_t = alpha_t;
-sUncer.mg      = mg;
-sUncer.tint    = -1;            % with -1, no interference at all
-sUncer.mi      = 0;
-sUncer.phi     = 90;
+sUncer.mg = zeros(3,1);
+sUncer.tint = 0;
+sUncer.mi = 0;
+sUncer.phi = 0;
 
 oUncer = CUncer( sUncer );
 
@@ -170,7 +168,6 @@ sControl.delta   = delta;
 sControl.kf      = kf;
 sControl.kt      = kt;
 sControl.k       = kt/kf;
-sControl.Tmin    = Tmin;
 sControl.Tmax    = Tmax;
 sControl.Fmin    = Fmin;
 sControl.Fmax    = Fmax;

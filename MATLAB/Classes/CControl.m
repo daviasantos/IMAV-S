@@ -123,7 +123,7 @@ classdef CControl
             obj.kf      = sControl.kf;
             obj.kt      = sControl.kt;
             obj.k       = sControl.k;
-            obj.Tmin    = sControl.Tmin;
+            obj.Tmin    = -sControl.Tmax;
             obj.Tmax    = sControl.Tmax;
             obj.Fmin    = sControl.Fmin;
             obj.Fmax    = sControl.Fmax;
