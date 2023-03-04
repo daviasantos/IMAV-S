@@ -5,6 +5,9 @@
 % Author: Prof Dr Davi A. Santos (ITA)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Sampling time
+
+Ts    = 0.01;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -17,9 +20,16 @@ ip_unity   = '127.0.0.1';
 port_unity = 55001;
 tout_unity = 10;
 role_unity = 'client';
-byteorder_unity = 'littleEndian';
+byteorder_unity = 'little-endian';
 nele_unity = 10;
 
+
+sSocket_unity.ip     = ip_unity;
+sSocket_unity.port   = port_unity;
+sSocket_unity.tout   = tout_unity;
+sSocket_unity.role   = role_unity;
+sSocket_unity.nele   = nele_unity;
+sSocket_unity.border = byteorder_unity;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,22 +39,61 @@ nele_unity = 10;
 %% MAV %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 nr      = 4;
-l       = 0.25;
-delta   = 45;
 kf      = 1.2838e-5;
 kt      = 3.0811e-7;
 wmax    = 0.9*9620*(2*pi/60); 
 km      = 1;
 Tm      = 0.01;
+l       = 0.25;
+delta   = 45;
 m       = 1;
 JB      = [0.015,0,0;0,0.015,0;0,0,0.03];
 Jr      = 0;
 g       = 9.81;
+w       = zeros(nr,1);
+r       = zeros(3,1);
+v       = zeros(3,1);
+vp      = zeros(3,1);
+D       = eye(3);
+W       = zeros(3,1);
+Xmin    = [-7,-7,-0.05]';
+Xmax    = [7,7,3.5]';
+
+
+sMav.nr   = nr;
+sMav.kf   = kf;
+sMav.kt   = kt;
+sMav.wmax = wmax;
+sMav.km   = km;
+sMav.Tm   = Tm;
+sMav.l    = l;
+sMav.delta= delta;
+sMav.m    = m;
+sMav.JB   = JB;
+sMav.Jr   = Jr;
+sMav.g    = g;
+sMav.h    = Ts;
+sMav.w    = w;
+sMav.r    = r;
+sMav.v    = v;
+sMav.vp   = vp;
+sMav.D    = D;
+sMav.W    = W;
+sMav.Xmin = Xmin;
+sMav.Xmax = Xmax;
+
 
 %% Disturbance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 alpha_t = [0.003;0.003;0.003];
 alpha_f = [0.02;0.02;0.02];
+
+sUncer.alpha_f = alpha_f;
+sUncer.alpha_t = alpha_t;
+sUncer.mg = zeros(3,1);
+sUncer.tint = 0;
+sUncer.mi = 0;
+sUncer.phi = 0;
 
 
 %% Sensors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,6 +111,25 @@ bg0 = [0.02 -0.01 0.05]';
 bm0 = [0.001 0.001 0.001]';
 
 
+sSensors.ba  = ba0;
+sSensors.bg  = bg0;
+sSensors.bm  = bm0;
+sSensors.g   = g;
+sSensors.mg  = mg;   
+sSensors.sa  = sa;
+sSensors.sg  = sg;
+sSensors.sm  = sm;
+sSensors.sba = sba;
+sSensors.sbg = sbg;
+sSensors.sbm = sbm;
+sSensors.sr  = sr;
+sSensors.Ts  = Ts;
+sSensors.ya  = [0;0;g];
+sSensors.yg  = zeros(3,1);
+sSensors.ym  = mg;
+sSensors.yr  = zeros(3,1); 
+sSensors.yrp = zeros(3,1);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CONTROL SYSTEM PARAMETERS
@@ -73,6 +141,11 @@ vxmax = 2.0;
 vymax = 2.0;       
 vzmax = 2.0;       
 wzmax = 1.0;  
+
+sJoy.vxmax = vxmax;
+sJoy.vymax = vymax;
+sJoy.vzmax = vzmax;
+sJoy.wzmax = wzmax;
 
 
 %% Attitude control law %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,6 +172,37 @@ zetamin = 0.25;
 zetamax = 4.65;
 
 
+sControl.K1      = K1;
+sControl.K2      = K2;
+sControl.K3      = K3;
+sControl.K4      = K4;
+sControl.Kc      = Kc;
+sControl.JB      = JB;
+sControl.Jr      = Jr;
+sControl.m       = m;
+sControl.g       = g;
+sControl.nr      = nr;
+sControl.l       = l;
+sControl.delta   = delta;
+sControl.kf      = kf;
+sControl.kt      = kt;
+sControl.k       = kt/kf;
+sControl.Tmax    = Tmax;
+sControl.Fmin    = Fmin;
+sControl.Fmax    = Fmax;
+sControl.zetamin = zetamin;
+sControl.zetamax = zetamax;
+sControl.r_      = zeros(3,1);
+sControl.v_      = zeros(3,1);
+sControl.p_      = 0;
+sControl.wz_     = 0;
+sControl.w_      = zeros(nr,1);
+sControl.D_      = eye(3);
+sControl.tau     = tau_ref_filter;
+sControl.Ts      = Ts;
+
+
+
 %% Trajectory planning or guidance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -111,7 +215,27 @@ Kdp   = 0;
 rhor  = 0.05;
 rhop  = 5*pi/180;
 dtl   = [0 0 0 0];
-Ts    = 0.01;
+
+
+sGuidance.nw    = nw;
+sGuidance.wl    = wl;
+sGuidance.Kpr   = Kpr;
+sGuidance.Kpp   = Kpp;
+sGuidance.Kdr   = Kdr;
+sGuidance.Kdp   = Kdp;
+sGuidance.rhor  = rhor;
+sGuidance.rhop  = rhop;
+sGuidance.dtl   = dtl;
+sGuidance.Ts    = Ts;
+sGuidance.dkl   = dtl/Ts;
+sGuidance.l     = 1;
+sGuidance.k     = 0;
+sGuidance.r_    = zeros(3,1);
+sGuidance.v_    = zeros(3,1);
+sGuidance.p_    = 0;
+sGuidance.wz_   = 0;
+sGuidance.flag  = 0;
+
   
 %% Auto take-off
 
@@ -145,5 +269,15 @@ if kfcalib == 0
 end
 
 
-
+sNavigation.tau = tau;
+sNavigation.Ts  = Ts;
+sNavigation.Ra  = Ra;
+sNavigation.Rg  = Rg;
+sNavigation.Rm  = Rm;
+sNavigation.Rr  = Rr;
+sNavigation.Qbg = Qbg;
+sNavigation.mg  = mg;
+sNavigation.x0  = x0;
+sNavigation.P0  = P0;
+            
 

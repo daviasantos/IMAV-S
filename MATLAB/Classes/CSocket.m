@@ -75,13 +75,13 @@ classdef CSocket
         
         function obj = InitSocket( obj )
         
-            obj.handle = tcpip( obj.ip,obj.port,'NetworkRole',obj.role );
+            obj.handle = tcpclient( obj.ip,obj.port );
      
             set( obj.handle,'Timeout',obj.tout );
             
             fopen( obj.handle ); 
             
-            obj.handle.byteOrder = obj.border;
+            obj.handle.ByteOrder = obj.border;
                 
         end
         

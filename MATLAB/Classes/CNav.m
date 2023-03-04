@@ -6,26 +6,6 @@
 %    it under the terms of the GNU General Public License as published by
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
-%
-%    This program is distributed in the hope that it will be useful,
-%    but WITHOUT ANY WARRANTY; without even the implied warranty of
-%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%    GNU General Public License for more details.
-%
-%    You should have received a copy of the GNU General Public License
-%    along with this program. If not, see <https://www.gnu.org/licenses/>.
-%
-%    Also add information on how to contact you by electronic and paper mail.
-%    To contact the author, please use the electronic address davists@ita.br or 
-%    send a letter to
-%    
-%    Prof. Dr. Davi Antonio dos Santos
-%    Divisao de Engenharia Mecanica
-%    Instituto Tecnologico de Aeronautica
-%    Praça Marechal Eduardo Gomes, 50, Vila das Acacias, 12228-900, Sao Jose dos Campos,
-%    SP, Brasil.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CNavigation
 % Description: navigation class. It implements an attitude EKF from vector 
@@ -37,7 +17,7 @@
 % Author: Prof Dr Davi A Santos (ITA)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-classdef CNavigation
+classdef CNav
     
     properties
         
@@ -92,7 +72,7 @@ classdef CNavigation
     
         %% Constructor
         
-        function obj = CNavigation( sNavigation )
+        function obj = CNav( sNavigation )
             
             % Initialize internal symbols
             
@@ -380,6 +360,16 @@ classdef CNavigation
         end
         
         
+        function obj = transferSensors2Nav( obj, oSensors )
+
+            obj.ya  = oSensors.ya;
+            obj.yg  = oSensors.yg;
+            obj.ym  = oSensors.ym;
+            obj.yr  = oSensors.yr;
+            obj.yrp = oSensors.yrp;
+
+        end
+
         
         
         

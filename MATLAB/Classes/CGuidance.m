@@ -208,8 +208,18 @@ classdef CGuidance
             end
      
         end
+
+
+        function obj = transferNav2Guidance( obj, oNav, oSensors )
         
-           
+             obj.r  = oNav.x(1:3); 
+             obj.v  = oNav.x(4:6); 
+             aux    = D2a( q2D( oNav.x(10:13 )) );  
+             obj.p  = aux(3); 
+             obj.wz = oSensors.yg(3) - oNav.x(16); 
+        
+        end
+
     end
     
     
