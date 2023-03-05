@@ -6,26 +6,6 @@
 %    it under the terms of the GNU General Public License as published by
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
-%
-%    This program is distributed in the hope that it will be useful,
-%    but WITHOUT ANY WARRANTY; without even the implied warranty of
-%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%    GNU General Public License for more details.
-%
-%    You should have received a copy of the GNU General Public License
-%    along with this program. If not, see <https://www.gnu.org/licenses/>.
-%
-%    Also add information on how to contact you by electronic and paper mail.
-%    To contact the author, please use the electronic address davists@ita.br or 
-%    send a letter to
-%    
-%    Prof. Dr. Davi Antonio dos Santos
-%    Divisao de Engenharia Mecanica
-%    Instituto Tecnologico de Aeronautica
-%    Praça Marechal Eduardo Gomes, 50, Vila das Acacias, 12228-900, Sao Jose dos Campos,
-%    SP, Brasil.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CControl
 % Description: Flight control class. It implements the flight control laws,
@@ -178,6 +158,8 @@ classdef CControl
             
             % Control law ifself
             
+            
+
             obj.FG_ = obj.m*( obj.g*obj.e3 + obj.K3*(obj.r_-obj.r) + obj.K4*(vaux_-obj.v) );
             obj.FG_ = sat( obj.FG_, obj.Fmin, obj.Fmax );
            
@@ -316,7 +298,95 @@ classdef CControl
         end
         
         
+        function  obj = transferNavSensors2Control( obj, oNav, oSensors )
+
+             obj.r     = oNav.x(1:3); 
+             obj.v     = oNav.x(4:6); 
+             obj.D     = q2D( oNav.x(10:13) );  
+             obj.W     = oSensors.yg - oNav.x(14:16);   
+                
+        end
+
         
+        function  obj = transferJoy2Control( obj, oJoy )
+
+            obj.v_   =  [oJoy.vx,oJoy.vy,oJoy.vz]'; 
+            obj.wz_  =  oJoy.wz;
+            
+           
+            obj = PBRefFilter ( obj );
+            
+            obj.r_   =  obj.r_ + obj.vcheck*obj.Ts;
+            obj.p_   =  obj.p_ + obj.wzcheck*obj.Ts;
+
+        end
+
+
+
+        function obj = transferGui2Control( obj, oGuidance )
+
+            obj.r_    = oGuidance.r_;
+            obj.v_    = oGuidance.v_;
+            obj.p_    = oGuidance.p_; 
+            obj.wz_   = oGuidance.wz_;
+
+        end
+
+
+        
+
+        function obj = implementControl( obj, oState )
+
+            % Position control
+
+            if  oState.state == oState.TAKEOFF || ...
+                oState.state == oState.LANDING || ...
+                oState.state == oState.WAYPOINT 
+            
+
+                obj = PC( obj, 1 );
+        
+            elseif oState.state == oState.MANUAL
+                
+                obj = PC( obj, 0 );
+            
+            end
+        
+     
+            % Attitude command computation
+                
+            
+            obj = ATC( obj );
+            
+        
+            % Attitude control law
+            
+            
+            if oState.state == oState.TAKEOFF || ...
+               oState.state == oState.LANDING || ...
+               oState.state == oState.WAYPOINT 
+           
+           
+                obj = AC( obj, 1 );
+                
+                
+            elseif oState.state == oState.MANUAL
+            
+                obj = AC( obj, 0 );
+                
+            end
+        
+            
+            % Control allocation algorithm
+            
+            obj = CA( obj );
+        
+    
+        
+        end
+
+
+   
     end
 end
 

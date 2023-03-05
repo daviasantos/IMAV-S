@@ -7,26 +7,6 @@
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
 %
-%    This program is distributed in the hope that it will be useful,
-%    but WITHOUT ANY WARRANTY; without even the implied warranty of
-%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%    GNU General Public License for more details.
-%
-%    You should have received a copy of the GNU General Public License
-%    along with this program. If not, see <https://www.gnu.org/licenses/>.
-%
-%    Also add information on how to contact you by electronic and paper mail.
-%    To contact the author, please use the electronic address davists@ita.br or 
-%    send a letter to
-%    
-%    Prof. Dr. Davi Antonio dos Santos
-%    Divisao de Engenharia Mecanica
-%    Instituto Tecnologico de Aeronautica
-%    Praça Marechal Eduardo Gomes, 50, Vila das Acacias, 12228-900, Sao Jose dos Campos,
-%    SP, Brasil.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CGuidance
 % Description: guidance class. It implements a guidance algorithm,
@@ -54,7 +34,8 @@ classdef CGuidance
         rhop           % interval radius for psil
         dtl            % dwell in l 
         dkl            % discrete dwell in l
-
+        htakeoff       % altitude command for the auto takeoff
+        vtakeoff       % velocity command for the auto takeoff
         
         
         % variables
@@ -100,7 +81,11 @@ classdef CGuidance
             obj.p_   = sGuidance.p_;
             obj.wz_  = sGuidance.wz_;
             obj.flag = sGuidance.flag;
-            
+
+            obj.htakeoff = sGuidance.htakeoff;
+            obj.vtakeoff = sGuidance.vtakeoff;
+
+
             % Pre-computation (so far, no one!)
             
             
@@ -122,10 +107,12 @@ classdef CGuidance
             
             % proportional law
             
-            obj.r_ = -obj.Kpr*obj.r + ( obj.Kpr + eye(3) )*obj.wl(1:3,obj.l);
-            obj.p_ = -obj.Kpp*obj.p + ( obj.Kpp + 1 )*obj.wl(4,obj.l);
+            
+            obj.r_ = obj.r + obj.Kpr*( obj.wl(1:3,obj.l) - obj.r );
+            obj.p_ = obj.p + obj.Kpp*( obj.wl(4,obj.l) - obj.p );
             
            
+
             % command derivatives
             
             obj.v_  = (obj.r_ - r_pre)/obj.Ts;
@@ -219,6 +206,29 @@ classdef CGuidance
              obj.wz = oSensors.yg(3) - oNav.x(16); 
         
         end
+
+
+        function obj = ImplementGuidance( obj, oNav, oSensors )
+
+            % input measurement
+
+            obj = transferNav2Guidance( obj, oNav, oSensors );  
+            
+            % wayset verification
+    
+            obj = wayset_verif( obj );
+    
+            % wayset transition
+    
+            obj = wayset_transit( obj ); 
+    
+            % command generation
+    
+            obj = plaw( obj );
+        
+
+        end
+
 
     end
     

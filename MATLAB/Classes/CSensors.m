@@ -156,6 +156,19 @@ classdef CSensors
     
         end
 
+
+
+        function obj = getSensorData( obj )
+
+            obj = acc ( obj );
+            obj = gyro( obj );
+            obj = mag ( obj );
+            obj = gps ( obj );
+            
+
+        end
+
+
         
         
     end

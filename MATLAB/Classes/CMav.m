@@ -190,7 +190,7 @@ classdef CMav
 
             if obj.r(1) > obj.Xmax(1), obj.r(1) = obj.Xmax(1); obj.v(1) = 0; end
             if obj.r(2) > obj.Xmax(2), obj.r(2) = obj.Xmax(2); obj.v(2) = 0; end
-            if obj.r(3) > obj.Xmax(3), obj.r(3) = obj.Xmax(3); obj.v(2) = 0; end
+            if obj.r(3) > obj.Xmax(3), obj.r(3) = obj.Xmax(3); obj.v(3) = 0; end
             if obj.r(1) < obj.Xmin(1), obj.r(1) = obj.Xmin(1); obj.v(1) = 0; end
             if obj.r(2) < obj.Xmin(2), obj.r(2) = obj.Xmin(2); obj.v(2) = 0; end
             if obj.r(3) < obj.Xmin(3), obj.r(3) = obj.Xmin(3); obj.v(3) = 0; end
@@ -238,7 +238,75 @@ classdef CMav
             end
             
         end
-        
+
+
+
+        %% Implement all simulation
+
+
+        function obj = ImplementSimulation( obj, oState, oControl, oUncer )
+
+            % State: ARMED
+    
+            if oState.state == oState.ARMED
+                
+                obj.r  = obj.r;
+                obj.D  = obj.D;
+                obj.v  = zeros(3,1);
+                obj.vp = zeros(3,1);  
+                obj.W  = zeros(3,1);
+                obj.w_ = 0.10*obj.wmax*ones(obj.nr,1);
+               
+                obj = rotors( obj );
+             
+            end
+            
+            
+            % State: READY
+            
+            if oState.state == oState.READY
+                
+                obj.r   = obj.r;
+                obj.D   = obj.D;
+                obj.v   = zeros(3,1);
+                obj.vp  = zeros(3,1);  
+                obj.W   = zeros(3,1);
+                obj.w_  = zeros(obj.nr,1);
+               
+                obj = rotors( obj );
+              
+            end
+            
+            
+            % State: TAKEOFF/LANDING/MANUAL/WAYPOINT
+            
+            if oState.state == oState.TAKEOFF || ...
+               oState.state == oState.LANDING || ...
+               oState.state == oState.MANUAL  || ...        
+               oState.state == oState.WAYPOINT 
+           
+               
+
+                % Disturbances
+            
+                oUncer  = disturbances( oUncer );
+            
+            
+                % Equations of motion
+            
+                obj.Fd = oUncer.Fd;
+                obj.Td = oUncer.Td;
+                obj.w_ = oControl.w_;
+
+              
+            
+                obj = propeller( obj );
+                obj = efforts  ( obj );
+                obj = dynamics ( obj );
+            
+            end
+    
+        end
         
        
         

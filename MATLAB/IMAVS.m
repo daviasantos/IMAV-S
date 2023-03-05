@@ -65,11 +65,9 @@ oState          = CState;
 
 startthegame;
 
-pause(10)
+pause(15)
 
 displayinit;
-
-
 
 
 
@@ -77,14 +75,17 @@ displayinit;
 % State: INIT
 
 oState.event = oState.TURN_ON;
+
 oState = StateTransition( oState );
  
 
 %% Connections
 
+
 % Create joystick handle
 
 oJoy = jopen( oJoy );
+
 
 % Unity TCP socket setup and initialization
 
@@ -94,33 +95,13 @@ oSocket_unity = InitSocket( oSocket_unity );
 %% Calibration
 
 
-
-for k = 1:kfcalib 
-    
-    % Sensor measurements
-    
-
-    oSensors = transferMav2Sensors( oSensors, oMav );
- 
-    oSensors = acc ( oSensors );
-    oSensors = gyro( oSensors );
-    oSensors = mag ( oSensors );
-    oSensors = gps ( oSensors );
-    
-    
-    % Navigation
-
-    oNav = transferSensors2Nav( oNav, oSensors );   
-
-    oNav = NV( oNav );
-    
-    
-end
+oNav = ImplementCalibration( oNav, oSensors, oMav );
 
 
 % State: READY
 
 oState.event = oState.INIT_END;
+
 oState = StateTransition( oState );
 
 
@@ -132,50 +113,17 @@ while( 1 )
     
     t1 = tic;
     
+    
     oJoy = jread( oJoy );
-    
-    
-
+        
     
     %% State machine
-    
-    % turn off command
-    
-    if oJoy.a(2) == 1 && oJoy.a(5) == 1, oState.event = oState.TURN_OFF; end
-    
-    % arm command
-    
-    if oJoy.a(2) == 1 && oJoy.a(5) == -1, oState.event = oState.ARM_CMD; end 
-    
-    % disarm command
-    
-    if oJoy.a(2) == -1 && oJoy.a(5) == 1, oState.event = oState.DISARM_CMD; end 
 
-    % take off command
-    
-    if oNav.x(3)>(htakeoff-0.05) && oState.state == oState.TAKEOFF, oState.event = oState.TAKEOFF_END; end    
-    
-    if oJoy.b(4), oState.event = oState.TAKEOFF_CMD; end
-     
-    
-    % land command
-          
-    if oMav.r(3) < 0.01 && oState.state == oState.LANDING, oState.event = oState.LAND_END; end
-    
-    if oJoy.b(1), oState.event = oState.LAND_CMD; end
-    
-    % waypoint command
-    
-    if oJoy.b(3), oState.event = oState.WAYPOINT_CMD; end
-    
-    % end of states (events)
-    
-   
-    if norm(oJoy.a) > 0.1 && oState.state == oState.WAYPOINT, oState.event = oState.WAYPOINT_END; end
-    
-       
+    oState = EventDetection ( oState, oJoy, oMav, oNav, oGuidance );
+
     oState = StateTransition( oState );
-    oState = StateTime( oState, Ts );
+
+    oState = StateTime      ( oState, Ts );
     
 
     %% End the simulation if state is off
@@ -188,59 +136,38 @@ while( 1 )
     end
     
     
-    %% Compute commands
+    %% Compute control commands
+
     
     % State: MANUAL
     
     if oState.state == oState.MANUAL 
         
+        
+        % Read joystick
+
         oJoy = jcommand( oJoy );
+
         
         % Commands to the flight controllers 
         
-        oControl.v_   =  [oJoy.vx,oJoy.vy,oJoy.vz]'; 
-        oControl.wz_  =  oJoy.wz;
-        
-       
-        oControl = PBRefFilter ( oControl );
-        
-        oControl.r_   =  oControl.r_ + oControl.vcheck*Ts;
-        oControl.p_   =  oControl.p_ + oControl.wzcheck*Ts;
-        
-       
+        oControl = transferJoy2Control( oControl, oJoy );
+  
         
     end
         
+
      
     % State: WAYPOINT
 
     if oState.state == oState.WAYPOINT
         
-        % input measurement
-
-        oGuidance = transferNav2Guidance( oGuidance, oNav, oSensors ); 
-
-      
-        
-        % wayset verification
-
-        oGuidance = wayset_verif( oGuidance );
-
-        % wayset transition
-
-        oGuidance = wayset_transit( oGuidance ); 
-
-        % command generation
-
-        oGuidance = plaw( oGuidance );
-
+        oGuidance = ImplementGuidance( oGuidance, oNav, oSensors );
         
         % Commands to the flight controllers 
+
+        oControl = transferGui2Control( oControl, oGuidance );
         
-        oControl.r_    = oGuidance.r_;
-        oControl.v_    = oGuidance.v_;
-        oControl.p_    = oGuidance.p_; 
-        oControl.wz_   = oGuidance.wz_;
         
     end  
     
@@ -249,8 +176,8 @@ while( 1 )
     
     if oState.state == oState.TAKEOFF
          
-        oControl.r_(3) = htakeoff;
-        oControl.v_    = [0 0 1]';
+        oControl.r_(3) = oGuidance.htakeoff;
+        oControl.v_    = oGuidance.vtakeoff;
         oControl.wz_   = 0;
         
         
@@ -271,130 +198,34 @@ while( 1 )
     
     
     % Feedback variables 
-    
-    oControl.r     = oNav.x(1:3); 
-    oControl.v     = oNav.x(4:6); 
-    oControl.D     = q2D( oNav.x(10:13) );  
-    oControl.W     = oSensors.yg - oNav.x(14:16);   
-    
-    
-    % Position control law
 
-    if oState.state == oState.TAKEOFF || ...
-       oState.state == oState.LANDING || ...
-       oState.state == oState.WAYPOINT 
-        
-        oControl = PC( oControl, 1 );
+
+    oControl = transferNavSensors2Control( oControl, oNav, oSensors );
     
-    elseif oState.state == oState.MANUAL
-        
-        oControl = PC( oControl, 0 );
-    
-    end
-    
- 
-    % Attitude command computation
-        
-    
-    oControl = ATC( oControl );
-    
-    
-    % Attitude control law
-    
-    
-    if oState.state == oState.TAKEOFF || ...
-       oState.state == oState.LANDING || ...
-       oState.state == oState.WAYPOINT 
-   
-   
-        oControl = AC( oControl, 1 );
-        
-        
-    elseif oState.state == oState.MANUAL
-    
-        oControl = AC( oControl, 0 );
-        
-    end
-    
-    
-    % Control allocation algorithm
-    
-    oControl = CA( oControl );
-    
-    
+       
+    % Implement position control, attitude control, and control allocation
+
+
+    oControl = implementControl( oControl, oState );
+
     
     %% Environment and plant simulation
+
+
+    oMav = ImplementSimulation( oMav, oState, oControl, oUncer );
     
-    % State: ARMED
-    
-    if oState.state == oState.ARMED
-        
-        oMav.r  = oMav.r;
-        oMav.D  = oMav.D;
-        oMav.v  = zeros(3,1);
-        oMav.vp = zeros(3,1);  
-        oMav.W  = zeros(3,1);
-        oMav.w_ = 0.10*wmax*ones(nr,1);
-       
-        oMav = rotors( oMav );
-     
-    end
-    
-    
-    % State: READY
-    
-    if oState.state == oState.READY
-        
-        oMav.r   = oMav.r;
-        oMav.D   = oMav.D;
-        oMav.v   = zeros(3,1);
-        oMav.vp  = zeros(3,1);  
-        oMav.W   = zeros(3,1);
-        oMav.w_  = zeros(nr,1);
-       
-        oMav = rotors( oMav );
-      
-    end
-    
-    
-    % State: TAKEOFF/LANDING/MANUAL/WAYPOINT
-    
-    if oState.state == oState.TAKEOFF || ...
-       oState.state == oState.LANDING || ...
-       oState.state == oState.MANUAL  || ...        
-       oState.state == oState.WAYPOINT 
-   
-        % Disturbances
-    
-        oUncer  = disturbances( oUncer );
-    
-    
-        % Equations of motion
-    
-        oMav.Fd = oUncer.Fd;
-        oMav.Td = oUncer.Td;
-        oMav.w_ = oControl.w_;
-    
-        oMav = propeller( oMav );
-        oMav = efforts  ( oMav );
-        oMav = dynamics ( oMav );
-    
-    end
-    
-    
+
     %% Sensor platform simulation
 
     
     oSensors = transferMav2Sensors( oSensors, oMav );
    
+    oSensors = getSensorData( oSensors );
 
-    oSensors = acc ( oSensors );
-    oSensors = gyro( oSensors );
-    oSensors = mag ( oSensors );
-    oSensors = gps ( oSensors );
     
 
     %% Navigation algorithm
+
    
     oNav = transferSensors2Nav( oNav, oSensors );
     

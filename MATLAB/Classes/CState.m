@@ -6,26 +6,6 @@
 %    it under the terms of the GNU General Public License as published by
 %    the Free Software Foundation, either version 3 of the License, or
 %    (at your option) any later version.
-%
-%    This program is distributed in the hope that it will be useful,
-%    but WITHOUT ANY WARRANTY; without even the implied warranty of
-%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%    GNU General Public License for more details.
-%
-%    You should have received a copy of the GNU General Public License
-%    along with this program. If not, see <https://www.gnu.org/licenses/>.
-%
-%    Also add information on how to contact you by electronic and paper mail.
-%    To contact the author, please use the electronic address davists@ita.br or 
-%    send a letter to
-%    
-%    Prof. Dr. Davi Antonio dos Santos
-%    Divisao de Engenharia Mecanica
-%    Instituto Tecnologico de Aeronautica
-%    Praça Marechal Eduardo Gomes, 50, Vila das Acacias, 12228-900, Sao Jose dos Campos,
-%    SP, Brasil.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CState
 % Description: state machine class. 
@@ -238,6 +218,49 @@ classdef CState
             obj.dt = obj.dt + Ts;
             
         end
+
+
+        
+        function obj = EventDetection ( obj, oJoy, oMav, oNav, oGuidance )
+
+
+            % turn off command
+    
+            if oJoy.a(2) == 1 && oJoy.a(5) == 1, obj.event = obj.TURN_OFF; end
+            
+            % arm command
+            
+            if oJoy.a(2) == 1 && oJoy.a(5) == -1, obj.event = obj.ARM_CMD; end 
+            
+            % disarm command
+            
+            if oJoy.a(2) == -1 && oJoy.a(5) == 1, obj.event = obj.DISARM_CMD; end 
+        
+            % take off command
+            
+            if oNav.x(3)>(oGuidance.htakeoff-0.05) && obj.state == obj.TAKEOFF, obj.event = obj.TAKEOFF_END; end    
+            
+            if oJoy.b(4), obj.event = obj.TAKEOFF_CMD; end
+             
+            
+            % land command
+                  
+            if oMav.r(3) < 0.01 && obj.state == obj.LANDING, obj.event = obj.LAND_END; end
+            
+            if oJoy.b(1), obj.event = obj.LAND_CMD; end
+            
+            % waypoint command
+            
+            if oJoy.b(3), obj.event = obj.WAYPOINT_CMD; end
+            
+            % end of states (events)
+            
+           
+            if norm(oJoy.a) > 0.1 && obj.state == obj.WAYPOINT, obj.event = obj.WAYPOINT_END; end
+            
+            
+        end
+
         
         
     end

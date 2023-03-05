@@ -45,7 +45,7 @@ classdef CNav
         mg                  % local mag den sity         
         Ts                  % sampling time
         tau                 % time const LP filter of gps deriv
-        
+        kfcalib             % number of iterations for calibration (0 if no)
         
         % Input variables
         
@@ -103,7 +103,8 @@ classdef CNav
             
             obj.mg =  sNavigation.mg/norm(sNavigation.mg);
                     
-                    
+            obj.kfcalib = sNavigation.kfcalib;
+
             % Initial conditions 
             
             obj.yr   = zeros(3,1);
@@ -371,7 +372,32 @@ classdef CNav
         end
 
         
-        
+        function obj = ImplementCalibration( obj, oSensors, oMav )
+
+            for k = 1:obj.kfcalib 
+                
+                % Sensor measurements
+                
+            
+                oSensors = transferMav2Sensors( oSensors, oMav );
+             
+                oSensors = acc ( oSensors );
+                oSensors = gyro( oSensors );
+                oSensors = mag ( oSensors );
+                oSensors = gps ( oSensors );
+                
+                
+                % Navigation
+            
+                obj = transferSensors2Nav( obj, oSensors );   
+            
+                obj = NV( obj );
+                
+                
+            end
+
+        end
+
         
         
             

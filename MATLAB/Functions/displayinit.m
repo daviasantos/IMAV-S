@@ -21,6 +21,6 @@ disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 disp(' ');
 
 
-input('Press ENTER to start...');
+%input('Press ENTER to start...');
 disp(' ');
 

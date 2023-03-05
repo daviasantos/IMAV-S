@@ -46,8 +46,8 @@ km      = 1;
 Tm      = 0.01;
 l       = 0.25;
 delta   = 45;
-m       = 1;
-JB      = [0.015,0,0;0,0.015,0;0,0,0.03];
+m       = 0.7;
+JB      = [0.0015,0,0;0,0.015,0;0,0,0.03];
 Jr      = 0;
 g       = 9.81;
 w       = zeros(nr,1);
@@ -150,7 +150,7 @@ sJoy.wzmax = wzmax;
 
 %% Attitude control law %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-K1     = diag([20 20 5]);        
+K1     = diag([30 30 5]);        
 K2     = diag([10 10 5]);        
 Tmax  = [2.21;2.21;0.21];
 
@@ -206,14 +206,14 @@ sControl.Ts      = Ts;
 %% Trajectory planning or guidance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-wl    = [[0 0 1 pi/6]',[5 0 1 pi/6]',[5 5 1 0]'];  
+wl    = [[0 0 1 0]',[5 0 1 0]',[5 5 1 0]'];  
 nw    = size(wl,2);
-Kpr   = diag([0.1 0.1 0.1]);  
-Kpp   = 0;
+Kpr   = diag([1 1 1]);  
+Kpp   = 1;
 Kdr   = diag([0.05 0.05 0.05]);  
 Kdp   = 0;
-rhor  = 0.05;
-rhop  = 5*pi/180;
+rhor  = 0.1;
+rhop  = 10*pi/180;
 dtl   = [0 0 0 0];
 
 
@@ -235,11 +235,8 @@ sGuidance.v_    = zeros(3,1);
 sGuidance.p_    = 0;
 sGuidance.wz_   = 0;
 sGuidance.flag  = 0;
-
-  
-%% Auto take-off
-
-htakeoff = 1;
+sGuidance.htakeoff = 1;
+sGuidance.vtakeoff = [0 0 1]';
 
 
 
@@ -279,5 +276,7 @@ sNavigation.Qbg = Qbg;
 sNavigation.mg  = mg;
 sNavigation.x0  = x0;
 sNavigation.P0  = P0;
+sNavigation.kfcalib = kfcalib;
+
             
 
