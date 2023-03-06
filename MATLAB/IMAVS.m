@@ -151,7 +151,7 @@ while( 1 )
         
         % Commands to the flight controllers 
         
-        oControl = transferJoy2Control( oControl, oJoy );
+        oControl = transferJoy2Control( oControl, oJoy, oMav );
   
         
     end
@@ -231,6 +231,8 @@ while( 1 )
     
     oNav = NV( oNav );
     
+   
+
     
     %% Animation
     

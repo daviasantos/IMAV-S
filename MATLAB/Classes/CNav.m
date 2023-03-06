@@ -59,6 +59,7 @@ classdef CNav
         % state variables
 
         x                   % State estimate 
+        a                   % Euler angles
         P                   % State estimate covariance 
         yt                  % innovation 
         Py                  % innov cov
@@ -179,6 +180,7 @@ classdef CNav
             
             x_AD(1:4) = x_AD(1:4)/norm( x_AD(1:4) );
             
+            obj.a = D2a( q2D( x_AD(1:4) ) );
   
             % Localization
 

@@ -324,9 +324,13 @@ classdef CControl
         end
 
         
-        function  obj = transferJoy2Control( obj, oJoy )
+        function  obj = transferJoy2Control( obj, oJoy, oMav )
 
-            obj.v_   =  [oJoy.vx,oJoy.vy,oJoy.vz]'; 
+            auxa = D2a(oMav.D);
+                
+            Daux = [cos(auxa(3)),sin(auxa(3)),0;-sin(auxa(3)),cos(auxa(3)),0;0,0,1];
+        
+            obj.v_   =  Daux*[oJoy.vx,oJoy.vy,oJoy.vz]'; 
             obj.wz_  =  oJoy.wz;
             
            
