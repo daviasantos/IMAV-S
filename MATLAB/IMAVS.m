@@ -162,7 +162,7 @@ while( 1 )
 
     if oState.state == oState.WAYPOINT
         
-        oGuidance = ImplementGuidance( oGuidance, oNav, oSensors );
+        oGuidance = ImplementGuidance( oGuidance, oNav, oSensors, oMav );
         
         % Commands to the flight controllers 
 
@@ -200,7 +200,7 @@ while( 1 )
     % Feedback variables 
 
 
-    oControl = transferNavSensors2Control( oControl, oNav, oSensors );
+    oControl = transferNavSensors2Control( oControl, oNav, oSensors, oMav );
     
        
     % Implement position control, attitude control, and control allocation

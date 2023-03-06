@@ -36,7 +36,7 @@ classdef CGuidance
         dkl            % discrete dwell in l
         htakeoff       % altitude command for the auto takeoff
         vtakeoff       % velocity command for the auto takeoff
-        
+        navdata        % 1 if navdata feedback and 0 if true state feedback
         
         % variables
         
@@ -85,6 +85,7 @@ classdef CGuidance
             obj.htakeoff = sGuidance.htakeoff;
             obj.vtakeoff = sGuidance.vtakeoff;
 
+            obj.navdata  = sGuidance.navdata;
 
             % Pre-computation (so far, no one!)
             
@@ -197,22 +198,36 @@ classdef CGuidance
         end
 
 
-        function obj = transferNav2Guidance( obj, oNav, oSensors )
+        function obj = transferNav2Guidance( obj, oNav, oSensors, oMav )
         
-             obj.r  = oNav.x(1:3); 
-             obj.v  = oNav.x(4:6); 
-             aux    = D2a( q2D( oNav.x(10:13 )) );  
-             obj.p  = aux(3); 
-             obj.wz = oSensors.yg(3) - oNav.x(16); 
+             if obj.navdata == 1
+
+                 obj.r  = oNav.x(1:3); 
+                 obj.v  = oNav.x(4:6); 
+                 aux    = D2a( q2D( oNav.x(10:13 )) );  
+                 obj.p  = aux(3); 
+                 obj.wz = oSensors.yg(3) - oNav.x(16); 
         
+             elseif obj.navdata == 0
+
+                 obj.r  = oMav.r; 
+                 obj.v  = oMav.v; 
+                 aux    = D2a( oMav.D );  
+                 obj.p  = aux(3); 
+                 obj.wz = oMav.W(3);
+
+             end
+
+
+
         end
 
 
-        function obj = ImplementGuidance( obj, oNav, oSensors )
+        function obj = ImplementGuidance( obj, oNav, oSensors, oMav )
 
             % input measurement
 
-            obj = transferNav2Guidance( obj, oNav, oSensors );  
+            obj = transferNav2Guidance( obj, oNav, oSensors, oMav );  
             
             % wayset verification
     

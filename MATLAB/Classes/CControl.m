@@ -46,6 +46,8 @@ classdef CControl
         Ts              % sampling time
         alpha           % coeff ref filter v_/wz_
         
+        navdata        % 1 if navdata feedback and 0 if true state feedback
+
         % External variables
         
         r                % position 
@@ -125,7 +127,9 @@ classdef CControl
             obj.vcheck = zeros(3,1);
             obj.wzcheck = 0;
             
-            
+            obj.navdata  = sControl.navdata;
+
+
             % Pre-computation
             
             obj.e3 = [0;0;1];
@@ -298,13 +302,25 @@ classdef CControl
         end
         
         
-        function  obj = transferNavSensors2Control( obj, oNav, oSensors )
+        function  obj = transferNavSensors2Control( obj, oNav, oSensors, oMav )
 
-             obj.r     = oNav.x(1:3); 
-             obj.v     = oNav.x(4:6); 
-             obj.D     = q2D( oNav.x(10:13) );  
-             obj.W     = oSensors.yg - oNav.x(14:16);   
-                
+             if obj.navdata == 1 
+
+                 obj.r     = oNav.x(1:3); 
+                 obj.v     = oNav.x(4:6); 
+                 obj.D     = q2D( oNav.x(10:13) );  
+                 obj.W     = oSensors.yg - oNav.x(14:16);   
+  
+             elseif obj.navdata == 0
+
+                 obj.r     = oMav.r; 
+                 obj.v     = oMav.v; 
+                 obj.D     = oMav.D;  
+                 obj.W     = oMav.W;  
+
+             end
+
+
         end
 
         

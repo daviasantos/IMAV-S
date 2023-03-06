@@ -238,14 +238,15 @@ classdef CState
         
             % take off command
             
-            if oNav.x(3)>(oGuidance.htakeoff-0.05) && obj.state == obj.TAKEOFF, obj.event = obj.TAKEOFF_END; end    
+
+            if ( oNav.x(3)>(oGuidance.htakeoff-0.05)  || norm(oJoy.a) > 0.3 ) && obj.state == obj.TAKEOFF, obj.event = obj.TAKEOFF_END; end    
             
             if oJoy.b(4), obj.event = obj.TAKEOFF_CMD; end
              
             
             % land command
                   
-            if oMav.r(3) < 0.01 && obj.state == obj.LANDING, obj.event = obj.LAND_END; end
+            if ( oMav.r(3) < 0.01 || norm(oJoy.a) > 0.3 ) && obj.state == obj.LANDING, obj.event = obj.LAND_END; end
             
             if oJoy.b(1), obj.event = obj.LAND_CMD; end
             
@@ -256,7 +257,7 @@ classdef CState
             % end of states (events)
             
            
-            if norm(oJoy.a) > 0.1 && obj.state == obj.WAYPOINT, obj.event = obj.WAYPOINT_END; end
+            if norm(oJoy.a) > 0.3 && obj.state == obj.WAYPOINT, obj.event = obj.WAYPOINT_END; end
             
             
         end

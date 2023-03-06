@@ -158,8 +158,8 @@ Tmax  = [2.21;2.21;0.21];
 
 %% Position control law %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-K3     = diag([0.3 0.3 0.3]);        
-K4     = diag([1 1 1]);      
+K3     = diag([0.3 0.3 0.5]);        
+K4     = diag([1 1 2]);      
 Kc     = diag([1.5,1.5,3]);
 Fmin   = [-5.66;-5.66;0.98];
 Fmax   = [5.66;5.66;19.62];
@@ -201,19 +201,22 @@ sControl.D_      = eye(3);
 sControl.tau     = tau_ref_filter;
 sControl.Ts      = Ts;
 
+navdata = 0;            % 1 (navdata feedback), 0 (true state feedback) 
+
+sControl.navdata = navdata;    
 
 
 %% Trajectory planning or guidance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-wl    = [[0 0 1 0]',[5 0 1 0]',[5 5 1 0]'];  
+wl    = [[0 0 1 0]',[-5 0 1 0]',[-5 2 1 pi/2]',[-5 2 0 pi/2]'];  
 nw    = size(wl,2);
-Kpr   = diag([1 1 1]);  
-Kpp   = 1;
+Kpr   = 0.7*diag([1 1 1]);  
+Kpp   = 0.7;
 Kdr   = diag([0.05 0.05 0.05]);  
 Kdp   = 0;
 rhor  = 0.1;
-rhop  = 10*pi/180;
+rhop  = 5*pi/180;
 dtl   = [0 0 0 0];
 
 
@@ -236,8 +239,8 @@ sGuidance.p_    = 0;
 sGuidance.wz_   = 0;
 sGuidance.flag  = 0;
 sGuidance.htakeoff = 1;
-sGuidance.vtakeoff = [0 0 1]';
-
+sGuidance.vtakeoff = [0 0 2]';
+sGuidance.navdata = navdata;  
 
 
 
